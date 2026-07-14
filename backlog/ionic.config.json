@@ -1,0 +1,7 @@
+{
+  "name": "backlog",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
