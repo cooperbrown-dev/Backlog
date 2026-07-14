@@ -1,0 +1,14 @@
+# .NET build output (Backlog.Api)
+bin/
+obj/
+
+# SQLite dev database (appears in Session 1)
+*.db
+*.db-shm
+*.db-wal
+
+# Node modules — safety net; frontend has its own .gitignore too
+node_modules/
+
+# macOS
+.DS_Store
