@@ -1,13 +1,10 @@
+using Backlog.Api.Common.Enums;
+
 namespace Backlog.Api.Models;
-
-public enum Category { Movie, Show, VideoGame, Book, Vacation }
-
-public enum BacklogStatus { Backlog, InProgress, Done }
 
 public abstract class BacklogItem
 
 {
-
     public Guid Id { get; set; }
 
     public string Title { get; set; } = string.Empty;
@@ -19,7 +16,4 @@ public abstract class BacklogItem
     public decimal? Rating { get; set; }
 
     public string? Note { get; set; }
-
-    // public int? YearReleased { get; set; }
-
 }
