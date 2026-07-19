@@ -1,5 +1,5 @@
 namespace Backlog.Api.Models;
-public abstract class Vacation : MediaItem
+public class Vacation : MediaItem
 
 {
     public decimal? EstimatedCost { get; set; }

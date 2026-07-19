@@ -150,23 +150,17 @@ Check items off. **Each session ends in something that works** — if you run ou
 
 > ### 📍 Current status (updated from your repo)
 >
-> **Done:** Session 0 scaffold — both `Backlog.Api` (backend) and `backlog` (frontend) exist and run.
-> **In progress:** Session 1 — your entity model is written; `BacklogDbContext` exists. Still to do: switch to Postgres, register the DbContext in `Program.cs`, add the first migration, create the DB.
+> **Done:** Session 0 scaffold (both apps run). Session 1 backend — model written; `BacklogDbContext` created; **switched to Postgres** (`Npgsql.EntityFrameworkCore.PostgreSQL`); DbContext registered in `Program.cs` reading the connection string from config; leaf types made concrete; project **builds clean**.
+> **Next:** make sure Postgres is running, then create the schema — `dotnet ef migrations add InitialCreate` → `dotnet ef database update`. After that, Session 2 (DTOs → Accessor → Manager → Controller).
 >
 > **Design decisions you've made (richer than the original flat MVP):**
-> - A **type hierarchy** instead of one flat entity: `BacklogItem` (base) → `MediaItem` → concrete `VideoGame` / `Movie` / `Show` / `Book` / `Vacation`, each with its own fields. With a single `DbSet<BacklogItem>`, EF Core maps this as **TPH (Table-Per-Hierarchy)**: one table, all columns, plus an auto **discriminator** column recording each row's real subtype. Concept to look up: *EF Core inheritance / TPH*.
+> - A **type hierarchy** instead of one flat entity: `BacklogItem` (abstract base) → `MediaItem` (abstract) → concrete `VideoGame` / `Movie` / `Show` / `Book` / `Vacation`, each with its own fields. With a single `DbSet<BacklogItem>`, EF Core maps this as **TPH (Table-Per-Hierarchy)**: one table, all columns, plus an auto **discriminator** column recording each row's real subtype. Concept to look up: *EF Core inheritance / TPH*.
 > - Enums `Category { Movie, Show, VideoGame, Book, Vacation }` and `BacklogStatus { Backlog, InProgress, Done }` live in `Common/Enums`.
-> - `Rating` is `decimal?` (allows 4.5-style) and there's a `string? Note`. (Note: you dropped `CreatedAt` — the Session 2 accessor below orders by it, so adjust that.)
+> - `Rating` is `decimal?` (allows 4.5-style) and there's a `string? Note`. (You dropped `CreatedAt` — the Session 2 accessor below orders by it, so order by `Title` instead or add `CreatedAt` back.)
 >
-> **⚠️ Three things to fix/decide before the migration:**
-> 1. **Leaf types must be concrete.** Right now *every* class is `abstract` — including `VideoGame` / `Movie` / `Show` / `Book` / `Vacation`. An `abstract` class can't be instantiated, so you can never `new VideoGame()` or insert a row. Keep `abstract` only on the **base** types (`BacklogItem`, `MediaItem`); drop it from the five leaves.
-> 2. **`Category` duplicates the TPH discriminator.** Once a row *is* a `VideoGame`, EF's discriminator already knows that — a separate `Category` enum is double-bookkeeping that can drift. Pick one: keep the subtypes and drop `Category`, **or** keep one flat `BacklogItem` with a `Category` and drop the subtypes. (Subtypes are the more interesting EF lesson.)
-> 3. **You're still on SQLite; the plan is Postgres.** Your `.csproj` references `Microsoft.EntityFrameworkCore.Sqlite` and `Program.cs` doesn't register the DbContext yet. Since you haven't created a migration, **now is the free moment to switch** — no migration to redo:
->    ```bash
->    dotnet remove package Microsoft.EntityFrameworkCore.Sqlite
->    dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
->    ```
->    then wire `UseNpgsql(...)` in `Program.cs` (Session 1 below).
+> **⚠️ One open design decision:** `Category` duplicates the TPH discriminator — once a row *is* a `VideoGame`, EF already records its type, so a separate `Category` enum is double-bookkeeping that can drift. Pick one: keep the subtypes and drop `Category`, **or** keep a flat `BacklogItem` with `Category` and drop the subtypes. (Subtypes are the more interesting EF lesson; not urgent, but settle it before building a lot on top.)
+>
+> **Optional cleanup:** the leftover `WeatherForecastController.cs` from the template can be deleted — Session 2 replaces it with `BacklogItemsController`.
 
 ### Session 0 — Tooling & scaffold *(1–2 hrs)*
 
@@ -193,8 +187,6 @@ Scaffold the frontend:
 - [ ] `cd backlog && ionic serve` → opens on `http://localhost:8100`
 
 ✅ **Checkpoint:** two apps run independently. — **done** (both projects scaffolded and running).
-
-> ⚠️ **Postgres note:** you scaffolded the backend on **SQLite**, not Postgres — see the status box above. The "PostgreSQL running locally" step is still open if you switch (recommended, and free right now since there's no migration yet).
 
 ---
 
@@ -242,7 +234,7 @@ public class Show      : MediaItem { public int? Seasons { get; set; } }
 public class Book      : MediaItem { public int? TotalPages { get; set; } }
 public class Vacation  : MediaItem { public decimal? EstimatedCost { get; set; } public int? HowManyDays { get; set; } }
 ```
-> ⚠️ **Fix before you migrate:** in your current files all five leaf types are marked `abstract` — an `abstract` class can't be instantiated, so EF can't insert rows and `new VideoGame()` won't compile. Drop `abstract` from `VideoGame` / `Movie` / `Show` / `Book` / `Vacation` (keep it only on `BacklogItem` and `MediaItem`).
+
 > 💡 **Concept — EF Core inheritance (TPH):** with the single `DbSet<BacklogItem>` below, EF stores the whole hierarchy in **one table** and adds a **discriminator** column to remember each row's real type. Look up "EF Core Table-Per-Hierarchy." Because the discriminator already records the type, the separate `Category` enum is redundant — pick one (see the status box up top).
 
 - [x] **`Data/BacklogDbContext.cs`** — one DbSet of the base type (EF discovers the subtypes automatically):
@@ -258,19 +250,27 @@ public class BacklogDbContext(DbContextOptions<BacklogDbContext> options) : DbCo
 }
 ```
 
-> 🚧 **IN PROGRESS HERE** — the model exists; the DB isn't wired up yet. Next three steps:
+> ✅ **Postgres wired up** — provider switched to Npgsql, DbContext registered in `Program.cs`, leaf types made concrete, project builds clean.
 
-- [ ] **Switch the provider to Postgres** (you're still on SQLite, and there's no migration yet, so it's free):
+- [x] **Switched the provider to Postgres:**
 ```bash
 dotnet remove package Microsoft.EntityFrameworkCore.Sqlite
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
 ```
-- [ ] **Register the DbContext in `Program.cs`** (above `var app = builder.Build();` — your `Program.cs` doesn't do this yet):
+- [x] **Registered the DbContext in `Program.cs`**, reading the connection string from config (not hardcoded):
 ```csharp
 builder.Services.AddDbContext<BacklogDbContext>(options =>
-    options.UseNpgsql("Host=localhost;Port=5432;Database=backlog;Username=postgres;Password=postgres"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 ```
-> 💡 That inline connection string is fine for a local-only MVP. If you used the **Homebrew** path instead of Docker, it's `Host=localhost;Port=5432;Database=backlog;Username=<your-mac-username>` (no password). In **Part 7** this moves out to config / env vars — never commit a real password.
+```json
+// appsettings.json — localhost default only; a real/hosted password goes in User Secrets or an env var, never here
+"ConnectionStrings": {
+  "Default": "Host=localhost;Port=5432;Database=backlog;Username=postgres;Password=postgres"
+}
+```
+> 💡 `GetConnectionString("Default")` reads from whichever config source wins — env var (prod) > User Secrets (dev) > `appsettings.json` (committed default). In **Part 7** the real Neon password slots in on top via an env var, with no code change.
+
+> 🚧 **IN PROGRESS HERE** — last step of Session 1:
 
 - [ ] **Create the schema** (make sure Postgres is running first — Docker container up, or `brew services` started):
   - [ ] `dotnet ef migrations add InitialCreate` → creates a `Migrations/` folder (open it — one table with a discriminator + every subtype's columns, all nullable)
