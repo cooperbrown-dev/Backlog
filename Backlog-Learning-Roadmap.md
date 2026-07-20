@@ -272,10 +272,10 @@ builder.Services.AddDbContext<BacklogDbContext>(options =>
 
 > 🚧 **IN PROGRESS HERE** — last step of Session 1:
 
-- [ ] **Create the schema** (make sure Postgres is running first — Docker container up, or `brew services` started):
-  - [ ] `dotnet ef migrations add InitialCreate` → creates a `Migrations/` folder (open it — one table with a discriminator + every subtype's columns, all nullable)
-  - [ ] `dotnet ef database update` → creates the tables inside your `backlog` Postgres database
-- [ ] Connect to `backlog` (`localhost:5432`) in your viewer → confirm the `BacklogItems` table exists (with a `Discriminator` column).
+- [x] **Create the schema** (make sure Postgres is running first — Docker container up, or `brew services` started):
+  - [x] `dotnet ef migrations add InitialCreate` → creates a `Migrations/` folder (open it — one table with a discriminator + every subtype's columns, all nullable)
+  - [x] `dotnet ef database update` → creates the tables inside your `backlog` Postgres database
+- [x] Connect to `backlog` (`localhost:5432`) in your viewer → confirm the `BacklogItems` table exists (with a `Discriminator` column).
 
 ✅ **Checkpoint:** your database and table exist, generated from your C# model.
 
