@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracker · Backlog Roadmap</title>
+<meta name="description" content="Tick off the Backlog build session by session — your progress saves in this browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236470ff'/><path d='M27 53l15 15 31-35' fill='none' stroke='white' stroke-width='11' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<script>try{var t=localStorage.getItem('backlog-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="index.html"><span class="brand__path">~/</span><span class="brand__name">backlog-roadmap</span><span class="brand__cursor">▊</span></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Dashboard</a>
+      <a href="tracker.html" aria-current="page">Tracker</a>
+      <a href="reading.html">Read</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☾</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div style="padding-top:34px">
+    <p class="eyebrow">Weekend MVP · build checklist</p>
+    <h1 class="display" style="font-size:clamp(1.9rem,4vw,2.6rem)">The tracker</h1>
+    <p class="lede">Every session ends in something that works. Tick items as you go — progress saves in this browser and syncs to the dashboard.</p>
+  </div>
+
+  <div class="tracker-layout">
+    <!-- Sidebar -->
+    <aside class="tracker-side">
+      <div class="card side-progress">
+        <div class="side-progress__pct"><span id="sidePct">0</span><span class="unit">%</span></div>
+        <div class="side-progress__k">complete</div>
+        <div class="bar" style="margin:12px 0" aria-hidden="true"><div class="bar__fill" id="sideBar"></div></div>
+        <button class="reset-btn" id="resetBtn" type="button">↺ Reset to roadmap defaults</button>
+      </div>
+      <nav class="card" style="padding:6px" aria-label="Jump to session">
+        <ul class="side-nav" id="sideNav"></ul>
+      </nav>
+    </aside>
+
+    <!-- Checklists (rendered from Roadmap.sessions) -->
+    <div id="sessions"></div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span>Generated from <code style="font-family:var(--font-mono)">Backlog-Learning-Roadmap.md</code> · Part 6</span>
+    <span><a href="reading.html">Full detail &amp; code →</a></span>
+  </div>
+</footer>
+
+<script src="roadmap.js"></script>
+<script>
+(function () {
+  var R = window.Roadmap;
+  R.initThemeToggle(document.getElementById("themeToggle"));
+
+  var SHORT = { s0: "Tooling", s1: "Data layer", s2: "API layer", s3: "Frontend", s4: "Polish" };
+
+  var CHECK_SVG = '<svg viewBox="0 0 22 22" aria-hidden="true"><polyline points="4 11 9 16 18 6"></polyline></svg>';
+
+  // ---- Build the checklists --------------------------------------------
+  function renderSessions() {
+    var html = R.sessions.map(function (s, i) {
+      var groups = s.groups.map(function (g) {
+        var showLabel = s.groups.length > 1 || g.label !== "Steps";
+        var items = g.items.map(function (it) {
+          return '<li><label class="check" data-check="' + it.id + '">' +
+              '<input type="checkbox" data-id="' + it.id + '">' +
+              '<span class="check__box">' + CHECK_SVG + '</span>' +
+              '<span class="check__text">' +
+                '<span class="check__title">' + it.title + '</span>' +
+                (it.note ? '<span class="check__note">' + it.note + '</span>' : '') +
+              '</span>' +
+            '</label></li>';
+        }).join("");
+        return (showLabel ? '<p class="group__label">' + g.label + '</p>' : '') +
+               '<ul class="checklist">' + items + '</ul>';
+      }).join("");
+
+      var checkpoint = s.checkpoint
+        ? '<div class="checkpoint">✓ Checkpoint — ' + s.checkpoint + '</div>'
+        : '<div class="checkpoint" style="color:var(--muted);background:var(--surface-2)">🛑 Stop anywhere after Session 3 and you have a real, working app you understand top to bottom.</div>';
+
+      return '<section class="session" id="' + s.id + '">' +
+          '<div class="session__head">' +
+            '<h2>' + s.title + '</h2>' +
+            '<span class="session__time">' + s.time + '</span>' +
+          '</div>' +
+          '<p style="color:var(--muted);font-size:.9rem;margin-bottom:4px">' + s.blurb + '</p>' +
+          '<div class="session__bar bar" aria-hidden="true"><div class="bar__fill" data-bar="' + s.id + '"></div></div>' +
+          groups +
+          checkpoint +
+        '</section>';
+    }).join("");
+    document.getElementById("sessions").innerHTML = html;
+  }
+
+  // ---- Sidebar nav ------------------------------------------------------
+  function renderSideNav() {
+    document.getElementById("sideNav").innerHTML = R.sessions.map(function (s, i) {
+      return '<li><a href="#' + s.id + '">' +
+          '<span class="ring" data-ring="' + s.id + '" data-label="0%"></span>' +
+          '<span>Session ' + i + ' · ' + SHORT[s.id] + '</span>' +
+        '</a></li>';
+    }).join("");
+  }
+
+  // ---- Sync visual state from storage -----------------------------------
+  function syncChecks() {
+    var boxes = document.querySelectorAll('input[data-id]');
+    boxes.forEach(function (box) {
+      var done = R.isDone(box.getAttribute("data-id"));
+      box.checked = done;
+      box.closest(".check").classList.toggle("is-checked", done);
+    });
+  }
+  function syncProgress() {
+    // per-session bars + sidebar rings
+    R.sessions.forEach(function (s) {
+      var p = R.sessionProgress(s.id);
+      var bar = document.querySelector('[data-bar="' + s.id + '"]');
+      if (bar) bar.style.width = p.pct + "%";
+      var ring = document.querySelector('[data-ring="' + s.id + '"]');
+      if (ring) { ring.style.setProperty("--p", p.pct); ring.setAttribute("data-label", p.pct + "%"); }
+    });
+    // overall
+    var o = R.overall();
+    document.getElementById("sidePct").textContent = o.pct;
+    document.getElementById("sideBar").style.width = o.pct + "%";
+  }
+  function syncAll() { syncChecks(); syncProgress(); }
+
+  // ---- Wire it up -------------------------------------------------------
+  renderSideNav();
+  renderSessions();
+  syncAll();
+
+  // One delegated listener handles every checkbox.
+  document.getElementById("sessions").addEventListener("change", function (e) {
+    var box = e.target.closest('input[data-id]');
+    if (!box) return;
+    R.setDone(box.getAttribute("data-id"), box.checked);
+    box.closest(".check").classList.toggle("is-checked", box.checked);
+    syncProgress();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    if (confirm("Reset all checkboxes to the roadmap's starting state (Sessions 0 & 1 done)?")) {
+      R.resetAll();
+      syncAll();
+    }
+  });
+
+  // Reflect changes made in another tab.
+  R.onChange(syncAll);
+})();
+</script>
+</body>
+</html>
