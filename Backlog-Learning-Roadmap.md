@@ -150,13 +150,13 @@ Check items off. **Each session ends in something that works** — if you run ou
 
 > ### 📍 Current status (updated from your repo)
 >
-> **Done:** Session 0 scaffold (both apps run). Session 1 backend — model written; `BacklogDbContext` created; **switched to Postgres** (`Npgsql.EntityFrameworkCore.PostgreSQL`); DbContext registered in `Program.cs` reading the connection string from config; leaf types made concrete; project **builds clean**.
-> **Next:** make sure Postgres is running, then create the schema — `dotnet ef migrations add InitialCreate` → `dotnet ef database update`. After that, Session 2 (DTOs → Accessor → Manager → Controller).
+> **Done:** Session 0 scaffold (both apps run). Session 1 backend — model written; `BacklogDbContext` created; **switched to Postgres** (`Npgsql.EntityFrameworkCore.PostgreSQL`); DbContext registered in `Program.cs` reading the connection string from config; leaf types made concrete; schema created (`InitialCreate` applied — `BacklogItems` table exists). Session 2 started — the three DTOs are written and `CreatedAt` (`DateTime`, defaults to `DateTime.UtcNow`) is back on the base model.
+> **Next:** (1) the model changed *after* `InitialCreate`, so add a migration for the new column — `dotnet ef migrations add AddCreatedAt` → `dotnet ef database update`; (2) fix `UpdateBacklogItemRequest.Rating` (`int?` → `decimal?`); (3) settle the create-path/subtype note below; then build Accessor → Manager → Controller.
 >
 > **Design decisions you've made (richer than the original flat MVP):**
 > - A **type hierarchy** instead of one flat entity: `BacklogItem` (abstract base) → `MediaItem` (abstract) → concrete `VideoGame` / `Movie` / `Show` / `Book` / `Vacation`, each with its own fields. With a single `DbSet<BacklogItem>`, EF Core maps this as **TPH (Table-Per-Hierarchy)**: one table, all columns, plus an auto **discriminator** column recording each row's real subtype. Concept to look up: *EF Core inheritance / TPH*.
 > - Enums `Category { Movie, Show, VideoGame, Book, Vacation }` and `BacklogStatus { Backlog, InProgress, Done }` live in `Common/Enums`.
-> - `Rating` is `decimal?` (allows 4.5-style) and there's a `string? Note`. (You dropped `CreatedAt` — the Session 2 accessor below orders by it, so order by `Title` instead or add `CreatedAt` back.)
+> - `Rating` is `decimal?` (allows 4.5-style) and there's a `string? Note`. `CreatedAt` is now back as `DateTime` defaulting to `DateTime.UtcNow`, so the Session 2 accessor's `OrderByDescending(i => i.CreatedAt)` works as written. (You used `DateTime`, not the `DateTimeOffset` the samples show — both are fine; keep the UTC rule from gotcha #6.)
 >
 > **⚠️ One open design decision:** `Category` duplicates the TPH discriminator — once a row *is* a `VideoGame`, EF already records its type, so a separate `Category` enum is double-bookkeeping that can drift. Pick one: keep the subtypes and drop `Category`, **or** keep a flat `BacklogItem` with `Category` and drop the subtypes. (Subtypes are the more interesting EF lesson; not urgent, but settle it before building a lot on top.)
 >
@@ -285,20 +285,21 @@ builder.Services.AddDbContext<BacklogDbContext>(options =>
 
 > This is `RecipeFunction → RecipeManager → RecipeAccessor`, shrunk. Open those three at work side-by-side.
 
-> 📝 **Heads-up given your model:** the code below still uses the original flat fields (`MediaType Type`, `int? Rating`, `CreatedAt`) so it reads simply — but your real model uses `Category`, `decimal? Rating`, `Note`, no `CreatedAt`, and a subtype per category. So: (1) order by `Title` instead of `CreatedAt` (or add `CreatedAt` back to the base), and (2) decide between one flat `BacklogItemDto` with nullable per-subtype fields or a DTO per subtype. The same applies to the Session 3 frontend (`MediaType` / `Playing` → your `Category` / `InProgress`). Keep the *layering* pattern below; adapt the field names to what you built.
+> 📝 **Heads-up given your model:** the samples below were written for the original *flat* model, so adapt them — your DTOs already use `Category`, `decimal? Rating`, `Note`, and `DateTime CreatedAt` (done ✅). Two things the samples get wrong for your model: (1) **`new BacklogItem { … }` won't compile** — `BacklogItem` is `abstract`, so `CreateAsync` must pick a concrete subtype (switch on `request.Category` → `new Movie()` / `new Book()` / …); (2) `CreateBacklogItemRequest` only carries base fields (`Title`, `Category`), so a new `Movie` starts with `RuntimeMinutes` null — fine for the MVP; decide later whether to expose per-subtype fields via one flat DTO or a DTO per subtype. The Session 3 frontend needs the same rename (`MediaType` / `Playing` → `Category` / `InProgress`). Keep the *layering* pattern; adapt the field names.
 
-- [ ] **`Dtos/BacklogDtos.cs`** — the contracts the API speaks (separate from the entity — that separation *is* the lesson):
+- [x] **`Dtos/BacklogDtos.cs`** — the contracts the API speaks (separate from the entity — that separation *is* the lesson). ✅ Written — matches your file (fix `Rating` to `decimal?` on the update record):
 ```csharp
-using Backlog.Api.Models;
+using Backlog.Api.Common.Enums;
 namespace Backlog.Api.Dtos;
 
-public record BacklogItemDto(Guid Id, string Title, MediaType Type, BacklogStatus Status, int? Rating, DateTimeOffset CreatedAt);
-public record CreateBacklogItemRequest(string Title, MediaType Type);
-public record UpdateBacklogItemRequest(BacklogStatus Status, int? Rating);
+public record BacklogItemDto(Guid Id, string Title, Category Category, BacklogStatus Status, DateTime CreatedAt, decimal? Rating, string? Note);
+public record CreateBacklogItemRequest(string Title, Category Category);
+public record UpdateBacklogItemRequest(BacklogStatus Status, decimal? Rating, string? Note);
 ```
 
 - [ ] **`Accessors/BacklogAccessor.cs`** — EF queries + entity↔DTO mapping (mirrors `RecipeAccessor.cs` + `Accessors/Mapper.cs`):
 ```csharp
+using Backlog.Api.Common.Enums;
 using Backlog.Api.Data;
 using Backlog.Api.Dtos;
 using Backlog.Api.Models;
@@ -322,14 +323,21 @@ public class BacklogAccessor(BacklogDbContext db) : IBacklogAccessor
 
     public async Task<BacklogItemDto> CreateAsync(CreateBacklogItemRequest request)
     {
-        var entity = new BacklogItem
+        // BacklogItem is abstract — pick the concrete subtype from the Category.
+        BacklogItem entity = request.Category switch
         {
-            Id = Guid.NewGuid(),
-            Title = request.Title,
-            Type = request.Type,
-            Status = BacklogStatus.Backlog,
-            CreatedAt = DateTimeOffset.UtcNow,
+            Category.Movie     => new Movie(),
+            Category.Show      => new Show(),
+            Category.VideoGame => new VideoGame(),
+            Category.Book      => new Book(),
+            Category.Vacation  => new Vacation(),
+            _ => throw new ArgumentOutOfRangeException(nameof(request.Category)),
         };
+        entity.Id = Guid.NewGuid();
+        entity.Title = request.Title;
+        entity.Category = request.Category;
+        entity.Status = BacklogStatus.Backlog;
+        // CreatedAt defaults to DateTime.UtcNow in the model — no need to set it here
         db.BacklogItems.Add(entity);
         await db.SaveChangesAsync();
         return ToDto(entity);
@@ -341,12 +349,13 @@ public class BacklogAccessor(BacklogDbContext db) : IBacklogAccessor
         if (entity is null) return null;
         entity.Status = request.Status;
         entity.Rating = request.Rating;
+        entity.Note = request.Note;
         await db.SaveChangesAsync();
         return ToDto(entity);
     }
 
     private static BacklogItemDto ToDto(BacklogItem i) =>
-        new(i.Id, i.Title, i.Type, i.Status, i.Rating, i.CreatedAt);
+        new(i.Id, i.Title, i.Category, i.Status, i.CreatedAt, i.Rating, i.Note);
 }
 ```
 > ⚠️ **Gotcha that will bite you:** EF can't translate your C# `ToDto` method into SQL. If you write `.Select(ToDto)` *before* `.ToListAsync()`, it throws at runtime. Materialize first (`ToListAsync`), then map in memory. (Or inline a `new BacklogItemDto(...)` — that EF *can* translate.)
@@ -636,6 +645,6 @@ Neon (get the DB URL) → deploy the API to Render with the two env vars (`Conne
 3. **Ionic imports array** — a missing `<ion-*>` import = blank render.
 4. **API port** — `environment.apiBaseUrl` must match `launchSettings.json`, and use `http://` (not the https port) to skip local cert hassles.
 5. **Postgres not running / wrong connection string** — `dotnet ef database update` or the API throwing "connection refused" / "password authentication failed" = your Postgres container/service isn't up, or the `Host/Port/Database/Username/Password` in `UseNpgsql(...)` doesn't match how you started it. This is the new tax for a real server (SQLite never had it — it was just a file).
-6. **Npgsql wants UTC timestamps** — Npgsql maps `DateTimeOffset`/`DateTime` to `timestamptz` and rejects non-UTC values ("Cannot write DateTimeOffset with Offset different than 0"). Always use `DateTimeOffset.UtcNow` (the MVP already does) — don't switch to `.Now`.
+6. **Npgsql wants UTC timestamps** — Npgsql maps `DateTime`/`DateTimeOffset` to `timestamptz` and rejects non-UTC values (a `DateTime` with `Kind != Utc`, or a `DateTimeOffset` with a non-zero offset). Your model uses `DateTime` defaulting to `DateTime.UtcNow` — keep it UTC; never switch to `DateTime.Now`.
 
 **Phase 2 picks up directly from here:** add a second entity, a many-to-many (the same `RecipeReaction` shape from ANCH-2516), and a stats view — all reusing this exact layer stack.
