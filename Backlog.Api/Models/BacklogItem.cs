@@ -13,6 +13,8 @@ public abstract class BacklogItem
 
     public BacklogStatus Status { get; set; }
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public decimal? Rating { get; set; }
 
     public string? Note { get; set; }
