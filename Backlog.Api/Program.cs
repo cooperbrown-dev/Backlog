@@ -1,3 +1,4 @@
+using Backlog.Api.Accessors;
 using Backlog.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ builder.Services.AddOpenApi();
 // Register the DbContext and point EF at Postgres
 builder.Services.AddDbContext<BacklogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped<IBacklogAccessor, BacklogAccessor>();
 
 var app = builder.Build();
 

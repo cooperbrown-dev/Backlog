@@ -9,8 +9,6 @@ public abstract class BacklogItem
 
     public string Title { get; set; } = string.Empty;
 
-    public Category Category { get; set; }
-
     public BacklogStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
