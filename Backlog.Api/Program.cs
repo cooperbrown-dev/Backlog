@@ -1,5 +1,6 @@
 using Backlog.Api.Accessors;
 using Backlog.Api.Data;
+using Backlog.Api.Managers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,9 @@ builder.Services.AddDbContext<BacklogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<IBacklogAccessor, BacklogAccessor>();
+builder.Services.AddScoped<IBacklogManager, BacklogManager>();
+builder.Services.AddCors(o => o.AddPolicy("Frontend", p =>
+    p.WithOrigins("http://localhost:8100/").AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
@@ -23,6 +27,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCors("Frontend");
 
 app.UseHttpsRedirection();
 
