@@ -12,4 +12,4 @@ public record BacklogItemDto
     string? Note
 );
 public record CreateBacklogItemRequest(string Title, Category Category);
-public record UpdateBacklogItemRequest(BacklogStatus Status, decimal? Rating, String? Note);
+public record UpdateBacklogItemRequest(BacklogStatus Status, decimal? Rating, string? Note);

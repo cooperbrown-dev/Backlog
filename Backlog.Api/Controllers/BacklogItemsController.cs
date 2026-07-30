@@ -16,6 +16,13 @@ public class BacklogItemsController(IBacklogManager manager) : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
     }
 
+    [HttpPost]
+    public async Task<ActionResult<BacklogItemDto>> Post(CreateBacklogItemRequest request)
+    {
+        var created = await manager.AddItemAsync(request);
+        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<BacklogItemDto>> Put(Guid id, UpdateBacklogItemRequest request)
     {
