@@ -1,7 +1,6 @@
 @host = http://localhost:5263
 
-GET 
-{{host}}/api/backlogitems
+GET {{host}}/api/backlogitems
 Accept: application/json
 
 ### Create and item
@@ -9,12 +8,12 @@ POST {{host}}/api/backlogitems
 Content-Type: application/json
 
 {
-  "title": "Dune",
-  "category": 3
+  "title": "New Spyro",
+  "category": 2
 }
 
 ### Update an item (paste a real id from a GET/POST response)
-PUT {{host}}/api/backlogitems/00000000-0000-0000-0000-000000000000
+PUT {{host}}/api/backlogitems/6a56ce85-e418-4751-8eab-730a422539e8
 Content-Type: application/json
 
 {
@@ -22,3 +21,7 @@ Content-Type: application/json
   "rating": 8.5,
   "note": "Halfway through"
 }
+
+### Delete an item (paste a real id)
+DELETE  {{host}}/api/backlogitems/f6262f92-05f9-4a4d-b5c3-5e2d20e3a89a
+Content-Type: application/json

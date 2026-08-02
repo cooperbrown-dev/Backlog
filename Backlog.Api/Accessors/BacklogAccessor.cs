@@ -45,6 +45,16 @@ public class BacklogAccessor(BacklogDbContext db) : IBacklogAccessor
         return ToDto(entity);
     }
 
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var entity = await db.BacklogItems.FindAsync(id);
+        if (entity is null) return false;
+
+        db.BacklogItems.Remove(entity);
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     private static BacklogItemDto ToDto(BacklogItem i) =>
         new(i.Id, i.Title, ToCategory(i), i.Status, i.CreatedAt, i.Rating, i.Note);
 

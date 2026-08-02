@@ -23,4 +23,11 @@ public class BacklogItemsController(IBacklogManager manager) : ControllerBase
         var updated = await manager.UpdateItemAsync(id, request);
         return updated is null ? NotFound() : updated;
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await manager.DeleteItemAsync(id);
+        return deleted ? NoContent() : NotFound();
+    }
 }
