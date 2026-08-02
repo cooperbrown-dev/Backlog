@@ -1,6 +1,24 @@
-@Backlog.Api_HostAddress = http://localhost:5263
+@host = http://localhost:5263
 
-GET {{Backlog.Api_HostAddress}}/weatherforecast/
+GET 
+{{host}}/api/backlogitems
 Accept: application/json
 
-###
+### Create and item
+POST {{host}}/api/backlogitems
+Content-Type: application/json
+
+{
+  "title": "Dune",
+  "category": 3
+}
+
+### Update an item (paste a real id from a GET/POST response)
+PUT {{host}}/api/backlogitems/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "status": 1,
+  "rating": 8.5,
+  "note": "Halfway through"
+}

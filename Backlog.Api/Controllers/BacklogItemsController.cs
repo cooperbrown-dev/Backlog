@@ -10,12 +10,6 @@ public class BacklogItemsController(IBacklogManager manager) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<BacklogItemDto>>> Get() => await manager.GetItemsAsync();
 
-    public async Task<ActionResult<BacklogItemDto>> Post(CreateBacklogItemRequest request)
-    {
-        var created = await manager.AddItemAsync(request);
-        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-    }
-
     [HttpPost]
     public async Task<ActionResult<BacklogItemDto>> Post(CreateBacklogItemRequest request)
     {
