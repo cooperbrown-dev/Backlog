@@ -442,8 +442,8 @@ Content-Type: application/json
 
 > Mirrors `recipe.service.ts` + `recipe.store.ts` + `recipe.page.ts`. The store is the simplified version (plain signals, no `@ngrx/component-store` + immer).
 
-- [ ] **Turn on HttpClient:** in `src/main.ts`, add `provideHttpClient()` (import from `@angular/common/http`) to the `providers` array next to `provideIonicAngular()`.
-- [ ] **`src/environments/environment.ts`** → set your API port:
+- [x] **Turn on HttpClient:** in `src/main.ts`, add `provideHttpClient()` (import from `@angular/common/http`) to the `providers` array next to `provideIonicAngular()`.
+- [x] **`src/environments/environment.ts`** → set your API port:
 ```ts
 export const environment = { production: false, apiBaseUrl: 'http://localhost:5080' };
 ```
