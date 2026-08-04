@@ -13,5 +13,6 @@ node_modules/
 # macOS
 .DS_Store
 
-# Backlog-Learning MD Files
+# Backlog-Learning Files
 Backlog-Learning-Roadmap.md
+roadmap/
