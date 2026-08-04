@@ -382,7 +382,7 @@ public class BacklogManager(IBacklogAccessor accessor) : IBacklogManager
 ```
 > 💡 The manager just forwards calls right now — normal for a CRUD MVP. Its job becomes real in Phase 2: injecting the current user (the `_contextFactoryUtility...UserId` line in `RecipeManager.GetRecipe`), validation, combining accessors. Keep the layer so the seam already exists.
 
-- [ ] **`Controllers/BacklogItemsController.cs`** — HTTP entry (mirrors `RecipeFunction.cs`):
+- [x] **`Controllers/BacklogItemsController.cs`** — HTTP entry (mirrors `RecipeFunction.cs`):
 ```csharp
 using Backlog.Api.Dtos;
 using Backlog.Api.Managers;
