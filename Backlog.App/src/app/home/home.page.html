@@ -1,0 +1,26 @@
+<ion-header><ion-toolbar><ion-title>My Backlog</ion-title></ion-toolbar></ion-header>
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-input placeholder="Title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)"></ion-input>
+    <ion-select [ngModel]="newType()" (ngModelChange)="newType.set($event)">
+      <ion-select-option [value]="0">Movie</ion-select-option>
+      <ion-select-option [value]="1">Show</ion-select-option>
+      <ion-select-option [value]="2">Video Game</ion-select-option>
+      <ion-select-option [value]="3">Book</ion-select-option>
+      <ion-select-option [value]="4">Vacation</ion-select-option>
+    </ion-select>
+    <ion-button (click)="add()">Add</ion-button>
+  </ion-item>
+
+  @for (group of [{ label: 'Backlog', items: notStarted() }, { label: 'Playing', items: inProgress() }, { label: 'Done', items: finished() }]; track group.label) {
+    <ion-list-header>{{ group.label }}</ion-list-header>
+    @for (item of group.items; track item.id) {
+      <ion-item>
+        <ion-label>{{ item.title }}</ion-label>
+        <ion-button slot="end" fill="clear" (click)="markDone(item)">Done</ion-button>
+      </ion-item>
+    } @empty {
+      <ion-item><ion-label color="medium">Nothing here yet</ion-label></ion-item>
+    }
+  }
+</ion-content>

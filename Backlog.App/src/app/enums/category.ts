@@ -1,0 +1,1 @@
+export enum Category { Movie = 0, Show = 1, VideoGame = 2, Book = 3, Vacation = 4 }

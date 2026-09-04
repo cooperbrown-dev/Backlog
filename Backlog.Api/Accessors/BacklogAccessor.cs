@@ -27,7 +27,7 @@ public class BacklogAccessor(BacklogDbContext db) : IBacklogAccessor
         };
         entity.Id = Guid.NewGuid();
         entity.Title = request.Title;
-        entity.Status = BacklogStatus.Backlog;
+        entity.Status = BacklogStatus.NotStarted;
         // CreatedAt defaults to DateTime.UtcNow in the model — no need to set it here
         db.BacklogItems.Add(entity);
         await db.SaveChangesAsync();
