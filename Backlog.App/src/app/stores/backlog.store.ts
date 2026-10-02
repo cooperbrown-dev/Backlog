@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { BacklogService } from '../services/backlog.service';
-import { BacklogItem } from '../models/backlog';
+import { BacklogItem } from '../models/backlog-item';
 import { CreateBacklogItemRequest } from '../models/create-backlog-item-request.model';
 import { UpdateBacklogItemRequest } from '../models/update-backlog-item-request.model';
 import { BacklogStatus } from '../enums/backlog-status';
@@ -10,6 +10,8 @@ import { BacklogStatus } from '../enums/backlog-status';
 export class BacklogStore {
   private api = inject(BacklogService);
   private readonly _items = signal<BacklogItem[]>([]);
+
+  readonly items = this._items.asReadonly();
 
   readonly notStarted = computed(() => this._items().filter(i => i.status === BacklogStatus.NotStarted));
   readonly inProgress = computed(() => this._items().filter(i => i.status === BacklogStatus.InProgress));

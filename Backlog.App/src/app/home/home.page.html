@@ -1,5 +1,11 @@
 <ion-header><ion-toolbar><ion-title>My Backlog</ion-title></ion-toolbar></ion-header>
 <ion-content class="ion-padding">
+
+  <ion-button expand="full" color="primary" shape="round" routerLink="/category/movies">Movies</ion-button>
+  <ion-button expand="full" color="primary" shape="round" routerLink="/category/shows">Shows</ion-button>
+  <ion-button expand="full" color="primary" shape="round" routerLink="/category/video-games">Video Games</ion-button>
+  <ion-button expand="full" color="primary" shape="round" routerLink="/category/books">Books</ion-button>
+  <ion-button expand="full" color="primary" shape="round" routerLink="/category/vacations">Vacations</ion-button>
   <ion-item>
     <ion-input placeholder="Title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)"></ion-input>
     <ion-select [ngModel]="newType()" (ngModelChange)="newType.set($event)">

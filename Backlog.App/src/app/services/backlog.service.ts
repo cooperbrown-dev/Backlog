@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BacklogItem } from '../models/backlog';
+import { BacklogItem } from '../models/backlog-item';
 import { CreateBacklogItemRequest } from '../models/create-backlog-item-request.model';
 import { UpdateBacklogItemRequest } from '../models/update-backlog-item-request.model';
 

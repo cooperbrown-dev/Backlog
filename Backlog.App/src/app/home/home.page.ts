@@ -1,8 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonListHeader, IonLabel } from '@ionic/angular/standalone';
 import { BacklogStore } from '../stores/backlog.store';
-import { BacklogItem} from '../models/backlog';
+import { BacklogItem } from '../models/backlog-item';
 import { BacklogStatus } from '../enums/backlog-status';
 import { Category } from '../enums/category';
 
@@ -12,7 +13,7 @@ import { Category } from '../enums/category';
   selector: 'app-home',
   standalone: true,
   templateUrl: 'home.page.html',
-  imports: [FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonListHeader, IonLabel],
+  imports: [FormsModule, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonListHeader, IonLabel],
 })
 export class HomePage implements OnInit {
   private store = inject(BacklogStore);

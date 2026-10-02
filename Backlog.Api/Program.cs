@@ -18,7 +18,7 @@ builder.Services.AddDbContext<BacklogDbContext>(options =>
 builder.Services.AddScoped<IBacklogAccessor, BacklogAccessor>();
 builder.Services.AddScoped<IBacklogManager, BacklogManager>();
 builder.Services.AddCors(o => o.AddPolicy("Frontend", p =>
-    p.WithOrigins("http://localhost:8100/").AllowAnyHeader().AllowAnyMethod()));
+    p.WithOrigins("http://localhost:8100", "http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
