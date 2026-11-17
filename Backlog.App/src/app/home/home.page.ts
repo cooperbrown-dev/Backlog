@@ -13,7 +13,21 @@ import { Category } from '../enums/category';
   selector: 'app-home',
   standalone: true,
   templateUrl: 'home.page.html',
-  imports: [FormsModule, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonInput, IonSelect, IonSelectOption, IonButton, IonListHeader, IonLabel],
+  imports: [
+    FormsModule,
+    RouterLink,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonListHeader,
+    IonLabel,
+  ],
 })
 export class HomePage implements OnInit {
   private store = inject(BacklogStore);
@@ -30,7 +44,30 @@ export class HomePage implements OnInit {
   newBook = signal(Category.Book);
   newVacation = signal(Category.Vacation);
 
-  ngOnInit() { this.store.load(); }
-  add() { if (this.newTitle().trim()) { this.store.add({ title: this.newTitle().trim(), category: this.newType() }); this.newTitle.set(''); } }
-  markDone(i: BacklogItem) { this.store.update(i.id, { status: BacklogStatus.Finished, rating: i.rating, note: i.note }); }
+  ngOnInit() {
+    this.store.load();
+  }
+  add() {
+    if (this.newTitle().trim()) {
+      this.store.add({
+        title: this.newTitle().trim(),
+        category: this.newType(),
+      });
+      this.newTitle.set('');
+    }
+  }
+  markDone(i: BacklogItem) {
+    this.store.update(i.id, {
+      status: BacklogStatus.Finished,
+      rating: i.rating,
+      note: i.note,
+    });
+  }
+  markStarted(i: BacklogItem) {
+    this.store.update(i.id, {
+      status: BacklogStatus.InProgress,
+      rating: i.rating,
+      note: i.note,
+    });
+  }
 }

@@ -23,6 +23,7 @@
     @for (item of group.items; track item.id) {
       <ion-item>
         <ion-label>{{ item.title }}</ion-label>
+        <ion-button slot="end" fill="clear" (click)="markStarted(item)">Started</ion-button>
         <ion-button slot="end" fill="clear" (click)="markDone(item)">Done</ion-button>
       </ion-item>
     } @empty {
