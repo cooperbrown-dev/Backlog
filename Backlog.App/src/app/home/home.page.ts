@@ -7,8 +7,6 @@ import { BacklogItem } from '../models/backlog-item';
 import { BacklogStatus } from '../enums/backlog-status';
 import { Category } from '../enums/category';
 
-
-
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -43,6 +41,7 @@ export class HomePage implements OnInit {
   newVideoGame = signal(Category.VideoGame);
   newBook = signal(Category.Book);
   newVacation = signal(Category.Vacation);
+  readonly BacklogStatus = BacklogStatus;
 
   ngOnInit() {
     this.store.load();

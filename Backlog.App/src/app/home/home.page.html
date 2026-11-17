@@ -23,8 +23,12 @@
     @for (item of group.items; track item.id) {
       <ion-item>
         <ion-label>{{ item.title }}</ion-label>
-        <ion-button slot="end" fill="clear" (click)="markStarted(item)">Started</ion-button>
-        <ion-button slot="end" fill="clear" (click)="markDone(item)">Done</ion-button>
+        @if (item.status === BacklogStatus.NotStarted) {
+          <ion-button slot="end" fill="clear" (click)="markStarted(item)">Start</ion-button>
+        }
+        @if (item.status === BacklogStatus.InProgress) {
+          <ion-button slot="end" fill="clear" (click)="markDone(item)">Done</ion-button>
+        }
       </ion-item>
     } @empty {
       <ion-item><ion-label color="medium">Nothing here yet</ion-label></ion-item>
