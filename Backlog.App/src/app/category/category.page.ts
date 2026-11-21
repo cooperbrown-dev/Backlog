@@ -19,10 +19,24 @@ export const CATEGORY_SLUGS: Record<string, { category: Category; label: string 
   selector: 'app-category',
   standalone: true,
   templateUrl: 'category.page.html',
-  imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonItem, IonLabel, IonListHeader, IonButton],
+  imports: [
+    RouterLink,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonBackButton,
+    IonItem,
+    IonLabel,
+    IonListHeader,
+    IonButton,
+  ],
 })
 export class CategoryPage implements OnInit {
   private store = inject(BacklogStore);
+
+  readonly BacklogStatus = BacklogStatus;
 
   /** Bound automatically from the :slug route param by withComponentInputBinding(). */
   slug = input.required<string>();
@@ -32,13 +46,34 @@ export class CategoryPage implements OnInit {
 
   private items = computed(() => {
     const c = this.config();
-    return c ? this.store.items().filter(i => i.category === c.category) : [];
+    return c ? this.store.items().filter((i) => i.category === c.category) : [];
   });
 
-  notStarted = computed(() => this.items().filter(i => i.status === BacklogStatus.NotStarted));
-  inProgress = computed(() => this.items().filter(i => i.status === BacklogStatus.InProgress));
-  finished = computed(() => this.items().filter(i => i.status === BacklogStatus.Finished));
+  notStarted = computed(() =>
+    this.items().filter((i) => i.status === BacklogStatus.NotStarted),
+  );
+  inProgress = computed(() =>
+    this.items().filter((i) => i.status === BacklogStatus.InProgress),
+  );
+  finished = computed(() =>
+    this.items().filter((i) => i.status === BacklogStatus.Finished),
+  );
 
-  ngOnInit() { this.store.load(); }
-  markDone(i: BacklogItem) { this.store.update(i.id, { status: BacklogStatus.Finished, rating: i.rating, note: i.note }); }
+  ngOnInit() {
+    this.store.load();
+  }
+  markDone(i: BacklogItem) {
+    this.store.update(i.id, {
+      status: BacklogStatus.Finished,
+      rating: i.rating,
+      note: i.note,
+    });
+  }
+  markStarted(i: BacklogItem) {
+    this.store.update(i.id, {
+      status: BacklogStatus.InProgress,
+      rating: i.rating,
+      note: i.note,
+    });
+  }
 }
