@@ -16,7 +16,7 @@
         @if (item.status === BacklogStatus.InProgress) {
           <ion-button slot="end" fill="clear" (click)="markDone(item)">Done</ion-button>
         }
-        <ion-button slot="end" fill="clear" (click)="deleteItem(item)">Delete</ion-button>
+        <ion-button slot="end" fill="clear" color="danger" (click)="deleteItem(item)">Delete</ion-button>
         <ion-label>{{ item.title }}</ion-label>
       </ion-item>
     } @empty {
