@@ -76,4 +76,7 @@ export class CategoryPage implements OnInit {
       note: i.note,
     });
   }
+  deleteItem(i: BacklogItem) {
+    this.store.delete(i.id);
+  }
 }

@@ -11,7 +11,22 @@ export class BacklogService {
   private http = inject(HttpClient);
   private url = `${environment.apiBaseUrl}/api/backlogitems`;
 
-  getItems(): Observable<BacklogItem[]> { return this.http.get<BacklogItem[]>(this.url); }
-  addItem(req: CreateBacklogItemRequest): Observable<BacklogItem> { return this.http.post<BacklogItem>(this.url, req); }
-  updateItem(id: string, req: UpdateBacklogItemRequest): Observable<BacklogItem> { return this.http.put<BacklogItem>(`${this.url}/${id}`, req); }
+  getItems(): Observable<BacklogItem[]> {
+    return this.http.get<BacklogItem[]>(this.url);
+  }
+
+  addItem(req: CreateBacklogItemRequest): Observable<BacklogItem> {
+    return this.http.post<BacklogItem>(this.url, req);
+  }
+
+  updateItem(
+    id: string,
+    req: UpdateBacklogItemRequest,
+  ): Observable<BacklogItem> {
+    return this.http.put<BacklogItem>(`${this.url}/${id}`, req);
+  }
+
+  deleteItem(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}`);
+  }
 }
