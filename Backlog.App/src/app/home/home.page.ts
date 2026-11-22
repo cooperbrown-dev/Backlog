@@ -46,6 +46,7 @@ export class HomePage implements OnInit {
   ngOnInit() {
     this.store.load();
   }
+
   add() {
     if (this.newTitle().trim()) {
       this.store.add({
@@ -55,6 +56,7 @@ export class HomePage implements OnInit {
       this.newTitle.set('');
     }
   }
+
   markDone(i: BacklogItem) {
     this.store.update(i.id, {
       status: BacklogStatus.Finished,
@@ -62,11 +64,16 @@ export class HomePage implements OnInit {
       note: i.note,
     });
   }
+
   markStarted(i: BacklogItem) {
     this.store.update(i.id, {
       status: BacklogStatus.InProgress,
       rating: i.rating,
       note: i.note,
     });
+  }
+
+  deleteItem(i: BacklogItem) {
+    this.store.delete(i.id);
   }
 }
