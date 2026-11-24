@@ -36,11 +36,6 @@ export class HomePage implements OnInit {
 
   newTitle = signal('');
   newType = signal(Category.Movie);
-  newMovie = signal(Category.Movie);
-  newShow = signal(Category.Show);
-  newVideoGame = signal(Category.VideoGame);
-  newBook = signal(Category.Book);
-  newVacation = signal(Category.Vacation);
   readonly BacklogStatus = BacklogStatus;
 
   ngOnInit() {
