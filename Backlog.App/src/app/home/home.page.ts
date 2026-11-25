@@ -11,6 +11,7 @@ import { Category } from '../enums/category';
   selector: 'app-home',
   standalone: true,
   templateUrl: 'home.page.html',
+  styleUrls: ['home.page.scss'],
   imports: [
     FormsModule,
     RouterLink,
